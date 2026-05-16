@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đặt Sân Pickleball</title>
+    <!-- Tailwind CSS để làm giao diện nhanh -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-slate-100 flex items-center justify-center min-h-screen">
+
+    <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
+        <h2 class="text-2xl font-bold text-center text-emerald-600 mb-6">🏓 Đăng Ký Sân Pickleball</h2>
+        
+        <form id="bookingForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Họ và tên</label>
+                <input type="text" id="fullName" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500" placeholder="Nguyễn Văn A">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Số điện thoại</label>
+                <input type="tel" id="phoneNumber" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500" placeholder="0901234567">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Chọn ngày chơi</label>
+                <input type="date" id="bookingDate" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Khung giờ</label>
+                <select id="slotTime" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+                    <option value="">-- Chọn khung giờ --</option>
+                    <option value="05:00 - 07:00">05:00 - 07:00 (Sáng sớm)</option>
+                    <option value="17:00 - 19:00">17:00 - 19:00 (Giờ cao điểm)</option>
+                    <option value="19:00 - 21:00">19:00 - 21:00 (Tối tối)</option>
+                </select>
+            </div>
+
+            <button type="button" onclick="submitBooking()" class="w-full bg-emerald-600 text-white p-2.5 rounded-md font-semibold hover:bg-emerald-700 transition">Đăng Ký Đặt Sân</button>
+        </form>
+
+        <div id="responseMessage" class="mt-4 text-center font-medium"></div>
+    </div>
+
+    <script>
+        async function submitBooking() {
+            const messageDiv = document.getElementById('responseMessage');
+            
+            // Lấy dữ liệu từ Form
+            const bookingData = {
+                fullName: document.getElementById('fullName').value,
+                phoneNumber: document.getElementById('phoneNumber').value,
+                bookingDate: document.getElementById('bookingDate').value,
+                slotTime: document.getElementById('slotTime').value
+            };
+
+            messageDiv.className = "mt-4 text-center font-medium text-gray-500";
+            messageDiv.innerText = "Đang xử lý đăng ký...";
+
+            try {
+                // Gọi API gửi lên Back-end
+                const response = await fetch('/api/book-court', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(bookingData)
+                });
+                
+                const result = await response.json();
+
+                if (response.ok) {
+                    messageDiv.className = "mt-4 text-center font-medium text-emerald-600";
+                    messageDiv.innerText = `🎉 ${result.message} (Mã đặt sân: #${result.data.bookingId})`;
+                    document.getElementById('bookingForm').reset(); // Đăng ký xong thì xóa trống form
+                } else {
+                    messageDiv.className = "mt-4 text-center font-medium text-red-600";
+                    messageDiv.innerText = `❌ Lỗi: ${result.error}`;
+                }
+            } catch (error) {
+                messageDiv.className = "mt-4 text-center font-medium text-red-600";
+                messageDiv.innerText = "❌ Không thể kết nối tới máy chủ.";
+            }
+        }
+    </script>
+</body>
+</html>
